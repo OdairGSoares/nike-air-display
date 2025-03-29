@@ -31,45 +31,48 @@ export default function Home() {
     };
   }, []);
 
-  // Trigger model animation on initial load
+  // Trigger model animation on initial load com transição mais suave
   useEffect(() => {
-    // Small delay to allow for page load
+    // Pequeno delay inicial antes de começar a mostrar o modelo
     const timer = setTimeout(() => {
       setModelVisible(true);
-    }, 800);
+    }, 1000); // Delay aumentado para permitir que a página carregue primeiro
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle section change to trigger model animation
+  // Handle section change to trigger model animation com transições mais suaves
   const handleSectionChange = (newSection) => {
     if (newSection === section) return;
     
-    // Hide model first
+    // Hide model first - fade out suave
     setModelVisible(false);
     
-    // Then change section after a delay
+    // Delay maior para mudança de seção para permitir animação completa
     setTimeout(() => {
       setCurrentSection(newSection);
-      // Show model again after section change
+      // Show model again after section change com delay maior
       setTimeout(() => {
         setModelVisible(true);
-      }, 600);
-    }, 400);
+      }, 800); // Aumentar para dar tempo ao conteúdo da seção aparecer
+    }, 500); // Dar tempo suficiente para o modelo desaparecer
   };
 
-  // Handle color change animation
+  // Handle color change animation com tempos mais suaves
   const handleColorChange = (newColor) => {
-    // Pequeno delay para esmaecer o modelo antes de mudar de cor
+    if (newColor === color) return; // Prevenir mudanças desnecessárias
+    
+    // Fade out suave
     setModelVisible(false);
     
+    // Esperar pela animação de saída
     setTimeout(() => {
       setColor(newColor);
       
-      // Mostrar o modelo novamente após a mudança de cor
+      // Mostrar novamente após a mudança de cor
       setTimeout(() => {
         setModelVisible(true);
-      }, 300);
-    }, 200);
+      }, 400); // Tempo maior para transição mais suave
+    }, 350); // Esperar fade-out completo
   };
 
   return (
@@ -95,7 +98,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.7, ease: "easeInOut" }}
+              transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }} // Bezier curve para movimento mais orgânico
               className="space-y-4"
             >
               <span className="text-sm uppercase tracking-wider font-bold text-slate-600">Just In</span>
@@ -132,7 +135,7 @@ export default function Home() {
           className={`w-full ${isMobile ? 'h-[350px]' : isTablet ? 'h-[450px]' : 'h-[550px]'} ${isTablet ? 'mt-8' : isMobile ? 'mt-4' : 'mt-0'} ${!isMobile && !isTablet ? 'ml-[-80px]' : ''} flex items-center justify-center`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeInOut", delay: 0.3 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }} // Transição mais longa e suave para o container
         >
           <Scene3D 
             color={color} 
