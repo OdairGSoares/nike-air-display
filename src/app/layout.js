@@ -14,8 +14,11 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: "Glass UI - Modern Design",
-  description: "A modern glassmorphism UI design",
+  title: 'Nike Dunk Low',
+  description: 'Experience the legendary Nike Dunk Low - A basketball icon reborn for the streets',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({ children }) {
