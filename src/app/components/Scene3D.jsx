@@ -6,7 +6,7 @@ import { OrbitControls, Environment } from '@react-three/drei';
 import Model3D from './Model3D';
 import ColorButtons from './ColorButtons';
 
-export default function Scene3D({ color, isMobile, isTablet }) {
+export default function Scene3D({ color, isMobile, isTablet, visible = true }) {
   const [modelColor, setModelColor] = useState('#ffffff');
  
 
@@ -18,14 +18,21 @@ export default function Scene3D({ color, isMobile, isTablet }) {
   const getCameraPosition = () => {
     if (isMobile) return [0, -0.8, 2.8];
     if (isTablet) return [0, -0.7, 2.5];
-    return [0, -0.6, 2.5];
+    return [-0.6, -0.6, 2.3];
+  };
+
+  // Get camera target (where the camera aponta) based on device type
+  const getCameraTarget = () => {
+    if (isMobile) return [0, -0.7, 0];
+    if (isTablet) return [0, -0.7, 0];
+    return [-0.6, -0.9, 0];
   };
 
   // Get field of view based on device type
   const getFov = () => {
     if (isMobile) return 45;
     if (isTablet) return 42;
-    return 45;
+    return 40;
   };
 
   return (
@@ -44,6 +51,7 @@ export default function Scene3D({ color, isMobile, isTablet }) {
           position={[0, 0, 0]}
           isMobile={isMobile}
           isTablet={isTablet}
+          visible={visible}
         />
         <OrbitControls 
           enableZoom={true}
@@ -53,7 +61,7 @@ export default function Scene3D({ color, isMobile, isTablet }) {
           rotateSpeed={0.8}
           minDistance={1}
           maxDistance={10}
-          target={[0, -0.7, 0]}
+          target={getCameraTarget()}
         />
         <Environment preset="city" />
       </Canvas>

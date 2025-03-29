@@ -13,6 +13,7 @@ export default function Home() {
   const [color, setColor] = useState('#ffffff');
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  const [modelVisible, setModelVisible] = useState(false);
 
   // Detect device type
   useEffect(() => {
@@ -30,21 +31,71 @@ export default function Home() {
     };
   }, []);
 
+  // Trigger model animation on initial load
+  useEffect(() => {
+    // Small delay to allow for page load
+    const timer = setTimeout(() => {
+      setModelVisible(true);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handle section change to trigger model animation
+  const handleSectionChange = (newSection) => {
+    if (newSection === section) return;
+    
+    // Hide model first
+    setModelVisible(false);
+    
+    // Then change section after a delay
+    setTimeout(() => {
+      setCurrentSection(newSection);
+      // Show model again after section change
+      setTimeout(() => {
+        setModelVisible(true);
+      }, 600);
+    }, 400);
+  };
+
+  // Handle color change animation
+  const handleColorChange = (newColor) => {
+    // Pequeno delay para esmaecer o modelo antes de mudar de cor
+    setModelVisible(false);
+    
+    setTimeout(() => {
+      setColor(newColor);
+      
+      // Mostrar o modelo novamente após a mudança de cor
+      setTimeout(() => {
+        setModelVisible(true);
+      }, 300);
+    }, 200);
+  };
+
   return (
     <div className='max-h-screen w-full overflow-x-hidden'>
       <Background />
-      <ColorButtons setColor={setColor} isMobile={isMobile} isTablet={isTablet} />
-      <Header section={section} setCurrentSection={setCurrentSection} isMobile={isMobile} isTablet={isTablet} />
+      <ColorButtons 
+        setColor={handleColorChange} 
+        isMobile={isMobile} 
+        isTablet={isTablet} 
+      />
+      <Header 
+        section={section} 
+        setCurrentSection={handleSectionChange} 
+        isMobile={isMobile} 
+        isTablet={isTablet} 
+      />
 
-      <div className={`flex ${isMobile || isTablet ? 'flex-col' : 'flex-row'} justify-center items-center px-4 md:px-8 lg:px-25 lg:pl-55 text-slate-700 ${isMobile ? 'mt-16' : isTablet ? 'mt-8' : 'mt-0'}`}>
-        <div className={`text-center ${!isMobile && !isTablet ? 'text-left' : ''} w-full z-10 px-4 md:px-8 ${isTablet ? 'max-w-2xl mx-auto' : ''}`}>
+      <div className={`flex ${isMobile || isTablet ? 'flex-col' : 'flex-row'} justify-center items-center px-4 md:px-8 ${isMobile || isTablet ? 'lg:px-25' : 'lg:px-16'} ${isMobile || isTablet ? 'lg:pl-55' : 'lg:pl-36'} text-slate-700 ${isMobile ? 'mt-16' : isTablet ? 'mt-8' : 'mt-0'} ${!isMobile && !isTablet ? 'gap-0' : ''}`}>
+        <div className={`text-center ${!isMobile && !isTablet ? 'text-left' : ''} w-full z-10 px-4 md:px-8 ${isTablet ? 'max-w-2xl mx-auto' : !isMobile ? 'pr-0 mr-0 max-w-xl' : ''}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={section}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.5 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.7, ease: "easeInOut" }}
               className="space-y-4"
             >
               <span className="text-sm uppercase tracking-wider font-bold text-slate-600">Just In</span>
@@ -77,9 +128,19 @@ export default function Home() {
           </AnimatePresence>
         </div>
 
-        <div className={`w-full ${isMobile ? 'h-[350px]' : isTablet ? 'h-[450px]' : 'h-[550px]'} ${isTablet ? 'mt-8' : isMobile ? 'mt-4' : 'mt-0'} flex items-center justify-center`}>
-          <Scene3D color={color} isMobile={isMobile} isTablet={isTablet} />
-        </div>
+        <motion.div 
+          className={`w-full ${isMobile ? 'h-[350px]' : isTablet ? 'h-[450px]' : 'h-[550px]'} ${isTablet ? 'mt-8' : isMobile ? 'mt-4' : 'mt-0'} ${!isMobile && !isTablet ? 'ml-[-80px]' : ''} flex items-center justify-center`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeInOut", delay: 0.3 }}
+        >
+          <Scene3D 
+            color={color} 
+            isMobile={isMobile} 
+            isTablet={isTablet} 
+            visible={modelVisible}
+          />
+        </motion.div>
       </div>
 
       <Footer isMobile={isMobile} isTablet={isTablet} />
