@@ -5,14 +5,79 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
-export default function Model3D({ color, isMobile, isTablet, visible = true }) {
-  const { scene } = useGLTF('/modelo.glb');
+export default function Model3D({ color, isMobile, isTablet, visible = true, section, onColorChange }) {
   const modelRef = useRef();
   const animationRef = useRef({ active: false });
   const [currentTexture, setCurrentTexture] = useState(null);
   const [opacity, setOpacity] = useState(0);
   const [scale, setScale] = useState(0.01);
   const [position, setPosition] = useState([0, -1.5, 0]);
+  const [currentModel, setCurrentModel] = useState(null);
+  const [effectiveColor, setEffectiveColor] = useState(color);
+
+  // Mapeamento de seções para modelos 3D
+  const modelMap = {
+    'Releases': '/Models/Nike Air Force.glb',
+    'Air Force 1': '/Models/Nike Air Force 1.glb', 
+    'Air Force 90': '/Models/Nike Air Max 90.glb'
+  };
+
+  // Cores disponíveis para cada modelo (sincronizado com ColorButtons.jsx)
+  const colorsBySection = {
+    'Releases': [
+      { name: 'white', value: '#ffffff', label: 'Branco' },
+      { name: 'blue', value: '#0066ff', label: 'Branco e Azul' },
+      { name: 'black', value: '#000000', label: 'Preto e Branco' },
+      { name: 'brown', value: '#8B4513', label: 'Preto e Marrom' },
+    ],
+    'Air Force 1': [
+      { name: 'white', value: '#ffffff', label: 'Branco' },
+      { name: 'blue', value: '#0066ff', label: 'Branco e Azul' },
+      { name: 'black', value: '#000000', label: 'Preto e Branco' },
+      { name: 'brown', value: '#8B4513', label: 'Preto e Marrom' },
+    ],
+    'Air Force 90': [
+      { name: 'blue', value: '#0066ff', label: 'Azul Branco e Cinza' },
+      { name: 'green', value: '#00ff00', label: 'Verde Branco e Cinza' },
+      { name: 'yellow', value: '#ffff00', label: 'Amarelo e Cinza' },
+      { name: 'red', value: '#ff0000', label: 'Preto e Vermelho' },
+      { name: 'black', value: '#000000', label: 'Preto e Branco' },
+    ]
+  };
+
+  // Carregar modelo baseado na seção
+  const modelPath = modelMap[section] || '/Models/Nike Air Force 1.glb';
+  const { scene } = useGLTF(modelPath);
+
+  // Debug: log da seção atual para verificar se está recebendo corretamente
+  useEffect(() => {
+    console.log('Model3D recebeu seção:', section);
+    console.log('Carregando modelo:', modelPath);
+  }, [section, modelPath]);
+
+  // Verificar se a cor atual está disponível no modelo e fazer fallback se necessário
+  useEffect(() => {
+    if (!section || !color) return;
+
+    const availableColors = colorsBySection[section] || [];
+    const colorExists = availableColors.some(colorOption => colorOption.value === color);
+    
+    if (!colorExists && availableColors.length > 0) {
+      // Cor atual não existe no modelo, usar a primeira cor disponível
+      const firstColor = availableColors[0].value;
+      setEffectiveColor(firstColor);
+      
+      // Notificar o componente pai sobre a mudança de cor
+      if (onColorChange) {
+        onColorChange(firstColor);
+      }
+      
+      console.log(`Cor ${color} não disponível para ${section}, usando ${firstColor}`);
+    } else {
+      // Cor atual é válida para este modelo
+      setEffectiveColor(color);
+    }
+  }, [section, color, onColorChange]);
 
   // Função de easing para suavizar a animação (easeOutCubic)
   const easeOutCubic = (x) => {
@@ -60,7 +125,7 @@ export default function Model3D({ color, isMobile, isTablet, visible = true }) {
         
         // Para posição, usamos uma curva ligeiramente diferente para parecer mais natural
         const posX = targetPosition[0] * easeOutCubic(rawProgress);
-        const posY = targetPosition[1] + (1 - easeOutBack(rawProgress)) * -0.5;
+        const posY = targetPosition[1] + (1 - easeOutBack(rawProgress)) * -0.3; // Ajustado para posições abaixadas
         const posZ = targetPosition[2];
         
         setPosition([posX, posY, posZ]);
@@ -94,7 +159,7 @@ export default function Model3D({ color, isMobile, isTablet, visible = true }) {
         // Saída mais suave para a posição
         setPosition([
           startPosition[0] * (1 - progress),
-          startPosition[1] - progress * 0.3, // Movimento vertical mais sutil
+          startPosition[1] - progress * 0.2, // Ajustado para trabalhar com posições abaixadas
           startPosition[2]
         ]);
         
@@ -116,28 +181,81 @@ export default function Model3D({ color, isMobile, isTablet, visible = true }) {
         clearTimeout(animationRef.current.timeoutId);
       }
     };
-  }, [visible, isMobile, isTablet]); // removemos scale e position das dependências
+  }, [visible, isMobile, isTablet, section]); // Adicionamos section às dependências para reanigar quando mudar o modelo
 
-  // Textures mapping - associating colors with texture paths
+  // Mapeamento de texturas específicas para cada modelo
   const textureMap = {
-    '#000000': '/textures/black_texture.jpg',
-    '#ff0000': '/textures/red_texture.jpg',
-    '#0066ff': '/textures/blue_texture.jpg',
-    '#00ff00': '/textures/green_texture.jpg',
-    '#800080': '/textures/purple_texture.jpg',
-    '#ffff00': '/textures/yellow_texture.jpg',
+    'Releases': {
+      '#ffffff': '/Models/Nike Air Force 1/Branco.jpg',
+      '#0066ff': '/Models/Nike Air Force 1/Branco e Azul.jpg',
+      '#000000': '/Models/Nike Air Force 1/Preto e Branco.jpg',
+      '#8B4513': '/Models/Nike Air Force 1/Preto e Marrom.png',
+    },
+    'Air Force 1': {
+      '#ffffff': '/Models/Nike Air Force 1/Branco.jpg',
+      '#0066ff': '/Models/Nike Air Force 1/Branco e Azul.jpg',
+      '#000000': '/Models/Nike Air Force 1/Preto e Branco.jpg',
+      '#8B4513': '/Models/Nike Air Force 1/Preto e Marrom.png',
+    },
+    'Air Force 90': {
+      '#0066ff': '/Models/Nike Air Max 90/Azul Branco e Cinza.jpg',
+      '#00ff00': '/Models/Nike Air Max 90/Verde Branco e Cinza.jpg',
+      '#ffff00': '/Models/Nike Air Max 90/Amarelo e Cinza.jpg',
+      '#ff0000': '/Models/Nike Air Max 90/Preto e Vermelho.jpg',
+      '#000000': '/Models/Nike Air Max 90/Preto e Branco.jpg',
+    }
   };
 
   // Effect to apply texture when color changes
   useEffect(() => {
-    if (!color) return;
+    if (!effectiveColor || !scene || !section) return;
     
-    // Create a new texture loader
+        // PRIMEIRO: Limpar todos os materiais do modelo anterior
+    scene.traverse((node) => {
+      if (node.isMesh && node.material) {
+        // Resetar o material para estado limpo
+        node.material.map = null;
+        node.material.color.set('#ffffff'); // Cor neutra
+        node.material.needsUpdate = true;
+        node.material.transparent = true;
+      }
+    });
+    
+    // Tratamento especial para o modelo Releases - aplicar cor diretamente aos materiais específicos
+    if (section === 'Releases') {
+      const targetMaterials = [
+        'Scene_-_Root_1_1.001',
+        'Leather_Copy_1_1748881.001',
+        'Leather_Copy_1_1748881'
+      ];
+      
+      scene.traverse((node) => {
+        if (node.isMesh && node.material) {
+          // Verificar se o material está na lista de materiais alvo
+          if (targetMaterials.includes(node.material.name)) {
+            // Aplicar cor diretamente ao material específico
+            node.material.color.set(effectiveColor);
+            node.material.map = null; // Garantir que não há textura
+            node.material.needsUpdate = true;
+            
+            // Make materials transparent for opacity animation
+            node.material.transparent = true;
+          }
+        }
+      });
+      
+      return; // Sair do useEffect para não executar a lógica de textura
+    }
+    
+    // Para outros modelos, usar texturas como antes
     const textureLoader = new THREE.TextureLoader();
     
-    // Load the texture based on the selected color
-    if (textureMap[color]) {
-      textureLoader.load(textureMap[color], (texture) => {
+    // Get the texture map for current section
+    const currentTextureMap = textureMap[section];
+    
+    if (currentTextureMap && currentTextureMap[effectiveColor]) {
+      // Load the specific texture for this model and color
+      textureLoader.load(currentTextureMap[effectiveColor], (texture) => {
         // Set texture settings
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.flipY = false;
@@ -156,10 +274,10 @@ export default function Model3D({ color, isMobile, isTablet, visible = true }) {
         });
       });
     } else {
-      // If no texture is available for this color, apply color directly
+      // Fallback: apply color directly if no texture is available
       scene.traverse((node) => {
         if (node.isMesh && node.material) {
-          node.material.color.set(color);
+          node.material.color.set(effectiveColor);
           node.material.needsUpdate = true;
           
           // Make materials transparent for opacity animation
@@ -167,10 +285,12 @@ export default function Model3D({ color, isMobile, isTablet, visible = true }) {
         }
       });
     }
-  }, [color, scene]);
+  }, [effectiveColor, scene, section]);
 
   // Apply opacity to model materials
   useEffect(() => {
+    if (!scene) return;
+    
     scene.traverse((node) => {
       if (node.isMesh && node.material) {
         node.material.transparent = true;
@@ -188,16 +308,21 @@ export default function Model3D({ color, isMobile, isTablet, visible = true }) {
 
   // Get scale based on device type
   function getScale() {
-    if (isMobile) return 0.45;
+    if (isMobile) return 0.5;
     if (isTablet) return 0.5;
-    return 0.48; // Aumentado ligeiramente para desktop
+    return 0.5; // Aumentado ligeiramente para desktop
   }
 
-  // Get position based on device type
+  // Get position based on device type - centralizados horizontalmente e abaixados
   function getPosition() {
     if (isMobile) return [0, -1, 0];
-    if (isTablet) return [0, -1, 0];
-    return [-0.6, -1.3, 0]; // Movido para a esquerda na versão desktop
+    if (isTablet) return [0, -1.1, 0];
+    return [-0.6, -1.3, 0]; // Modelos abaixados no frame 3D
+  }
+
+  // Renderizar apenas se temos um scene válido
+  if (!scene) {
+    return null;
   }
 
   return (
@@ -213,4 +338,7 @@ export default function Model3D({ color, isMobile, isTablet, visible = true }) {
   );
 }
 
-useGLTF.preload('/modelo.glb');
+// Preload todos os modelos para melhor performance
+useGLTF.preload('/Models/Nike Air Force 1.glb');
+useGLTF.preload('/Models/Nike Air Max 90.glb');
+useGLTF.preload('/Models/Nike Air Force.glb');

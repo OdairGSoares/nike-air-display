@@ -6,7 +6,7 @@ import { OrbitControls, Environment } from '@react-three/drei';
 import Model3D from './Model3D';
 import ColorButtons from './ColorButtons';
 
-export default function Scene3D({ color, isMobile, isTablet, visible = true }) {
+export default function Scene3D({ color, isMobile, isTablet, visible = true, section, onColorChange }) {
   const [modelColor, setModelColor] = useState('#ffffff');
  
 
@@ -52,6 +52,8 @@ export default function Scene3D({ color, isMobile, isTablet, visible = true }) {
           isMobile={isMobile}
           isTablet={isTablet}
           visible={visible}
+          section={section}
+          onColorChange={onColorChange}
         />
         <OrbitControls 
           enableZoom={true}

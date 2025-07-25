@@ -14,8 +14,8 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: 'Nike Dunk Low',
-  description: 'Experience the legendary Nike Dunk Low - A basketball icon reborn for the streets',
+  title: 'Nike',
+  description: 'Experimente a lendária Air - Um ícone renascido para as ruas',
   icons: {
     icon: '/favicon.ico',
   },

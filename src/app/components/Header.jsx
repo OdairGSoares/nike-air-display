@@ -3,16 +3,31 @@
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Header({ section, setCurrentSection, isMobile, isTablet }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isDesktopSmall, setIsDesktopSmall] = useState(false);
+
+  // Detectar viewport desktop pequena (1024px - 1279px)
+  useEffect(() => {
+    const checkDesktopSmall = () => {
+      const width = window.innerWidth;
+      setIsDesktopSmall(width >= 1024 && width < 1280);
+    };
+
+    checkDesktopSmall();
+    window.addEventListener('resize', checkDesktopSmall);
+
+    return () => {
+      window.removeEventListener('resize', checkDesktopSmall);
+    };
+  }, []);
   
   const menuItems = [
-    { label: 'Releases' },
-    { label: 'Men' },
-    { label: 'Women' },
-    { label: 'Kids' },
+    { label: 'Releases', value: 'Releases', displayName: 'Lançamentos' },
+    { label: 'Air Force 1', value: 'Air Force 1', displayName: 'Air Force 1' },
+    { label: 'Air Force 90', value: 'Air Force 90', displayName: 'Air Max 90' },
   ];
 
   const selectedSectionCSS = 'transition-all duration-300 text-slate-200 font-semibold px-4 py-2 rounded-full relative z-10';
@@ -29,11 +44,11 @@ export default function Header({ section, setCurrentSection, isMobile, isTablet 
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: -100, opacity: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20, mass: 1 }}
-      className={`z-50 flex items-center ${!isMobile && !isTablet ? 'justify-start' : 'justify-between'} h-24 ${isTablet ? 'h-28' : isMobile ? 'h-24' : 'h-40'} px-4 md:px-8 
-                ${isTablet ? 'mx-4' : isMobile ? 'mx-2' : 'lg:mx-60'} ${isTablet ? 'space-x-8' : isMobile ? 'space-x-4' : 'md:space-x-20'} text-slate-700`}
+      className={`z-50 flex items-center ${!isMobile && !isTablet && !isDesktopSmall ? 'justify-start' : 'justify-between'} h-24 ${isTablet ? 'h-28' : isMobile || isDesktopSmall ? 'h-24' : 'h-40'} px-4 md:px-8 
+                ${isTablet ? 'mx-4' : (isMobile || isDesktopSmall) ? 'mx-2' : 'xl:mx-60'} ${isTablet ? 'space-x-8' : (isMobile || isDesktopSmall) ? 'space-x-4' : 'md:space-x-10'} text-slate-700`}
     >
       
-      <Link href="/" className={`relative ${isTablet ? 'w-20 h-20' : isMobile ? 'w-16 h-16' : 'w-24 h-24'}`}>
+      <Link href="/" className={`relative ${isTablet ? 'w-20 h-20' : (isMobile || isDesktopSmall) ? 'w-16 h-16' : 'w-24 h-24'}`}>
         <Image
           src="/Nike.svg"
           alt="Nike Logo"
@@ -43,7 +58,7 @@ export default function Header({ section, setCurrentSection, isMobile, isTablet 
         />
       </Link>
 
-      {isMobile || isTablet ? (
+      {isMobile || isTablet || isDesktopSmall ? (
         <>
           <button 
             onClick={toggleMenu}
@@ -63,27 +78,27 @@ export default function Header({ section, setCurrentSection, isMobile, isTablet 
             >
               {menuItems.map((item) => (
                 <button
-                  className={`text-xl mb-6 ${item.label === section ? 'text-slate-700 font-bold' : 'text-slate-500'}`}
+                  className={`text-xl mb-6 ${item.value === section ? 'text-slate-700 font-bold' : 'text-slate-500'}`}
                   onClick={() => {
-                    setCurrentSection(item.label);
+                    setCurrentSection(item.value);
                     setMenuOpen(false);
                   }}
-                  key={item.label}
+                  key={item.value}
                 >
-                  {item.label}
+                  {item.displayName}
                 </button>
               ))}
             </motion.div>
           )}
         </>
       ) : (
-        <div className='flex items-center gap-4 space-x-8 md:space-x-14'>
+        <div className='flex items-center gap-4'>
           <motion.div
-            className="absolute bg-slate-700 h-10 rounded-full"
+            className="absolute left-104 bg-slate-700 h-10 rounded-full"
             initial={false}
             animate={{
-              width: '110px',
-              x: menuItems.findIndex(item => item.label === section) * 150
+              width: '120px',
+              x: menuItems.findIndex(item => item.value === section) * 135
             }}
             transition={{
               type: "spring",
@@ -94,10 +109,10 @@ export default function Header({ section, setCurrentSection, isMobile, isTablet 
 
           {menuItems.map((item) => (
             <button
-              className={item.label === section ? selectedSectionCSS : unselectedSectionCSS}
-              onClick={() => setCurrentSection(item.label)}
-              key={item.label}>
-              {item.label}
+              className={item.value === section ? selectedSectionCSS : unselectedSectionCSS}
+              onClick={() => setCurrentSection(item.value)}
+              key={item.value}>
+              {item.displayName}
             </button>
           ))}
         </div>
